@@ -26,11 +26,20 @@ func (r *router) Routes() http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Route("/users", func(mux chi.Router) {
-		mux.Get("/{id}", r.user.Get)
+		mux.Get("/", r.user.All)
+		mux.Post("/create", r.user.Create)
+		mux.Get("/{user_id}", r.user.Get)
+		mux.Post("/{user_id}/update", r.user.Update)
+		mux.Post("/{user_id}/delete", r.user.Delete)
+		mux.Get("/{user_id}/contacts", r.contact.GetByUser)
 	})
 
 	mux.Route("/contacts", func(mux chi.Router) {
-		mux.Get("/{id}", r.contact.Get)
+		mux.Get("/", r.contact.All)
+		mux.Post("/create", r.contact.Create)
+		mux.Get("/{contact_id}", r.contact.Get)
+		mux.Post("/{contact_id}/update", r.contact.Update)
+		mux.Post("/{contact_id}/delete", r.contact.Delete)
 	})
 
 	mux.NotFound(handlers.NotFound)

@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS public.contacts (
     nomor_telepon VARCHAR(25),
     email VARCHAR(255),
     alamat VARCHAR(255),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
     CONSTRAINT fk_user
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );

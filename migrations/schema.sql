@@ -30,7 +30,9 @@ CREATE TABLE public.contacts (
     nama character varying(255) NOT NULL,
     nomor_telepon character varying(25),
     email character varying(255),
-    alamat character varying(255)
+    alamat character varying(255),
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
