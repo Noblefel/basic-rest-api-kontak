@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -66,35 +65,6 @@ func (h *UserHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	SendJSON(w, r, http.StatusOK, Response{
 		Message: "User retrieved succesfully",
 		Data:    user,
-	})
-}
-
-func (h *UserHandlers) Create(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		SendJSON(w, r, http.StatusBadRequest, Response{
-			Message: "Error parsing form",
-		})
-		return
-	}
-
-	user := models.User{
-		Email:    r.Form.Get("email"),
-		Password: r.Form.Get("password"),
-	}
-
-	id, err := h.repo.CreateUser(user)
-	if err != nil {
-		log.Println(err)
-		SendJSON(w, r, http.StatusInternalServerError, Response{
-			Message: "Error unable to create user",
-		})
-		return
-	}
-
-	SendJSON(w, r, http.StatusCreated, Response{
-		Message: "User has been created",
-		Data:    id,
 	})
 }
 

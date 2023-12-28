@@ -1,3 +1,4 @@
 *.exe
 database.yml
 .env
+.todo

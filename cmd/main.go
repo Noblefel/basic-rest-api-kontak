@@ -26,10 +26,15 @@ func main() {
 
 	log.Println("Starting server at port:", port)
 
+	authHandlers := handlers.NewAuthHandlers(db)
 	userHandlers := handlers.NewUserHandlers(db)
 	contactHandlers := handlers.NewContactHandlers(db)
 
-	router := router.NewRouter(userHandlers, contactHandlers)
+	router := router.NewRouter(
+		authHandlers,
+		userHandlers,
+		contactHandlers,
+	)
 
 	server := &http.Server{
 		Addr:    fmt.Sprint("localhost:", port),

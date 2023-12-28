@@ -76,34 +76,6 @@ func (ur *UserRepo) GetAllUser() ([]models.User, error) {
 	return users, nil
 }
 
-func (ur *UserRepo) CreateUser(u models.User) (int, error) {
-	query := `
-	INSERT INTO users (email, password, created_at, updated_at) 
-	VALUES ($1, $2, $3, $4)
-	RETURNING id
-	`
-
-	password, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return 0, err
-	}
-
-	var id int
-
-	err = ur.db.QueryRow(query,
-		u.Email,
-		string(password),
-		time.Now(),
-		time.Now(),
-	).Scan(&id)
-
-	if err != nil {
-		return 0, err
-	}
-
-	return id, nil
-}
-
 func (ur *UserRepo) UpdateUser(u models.User) error {
 
 	var newPassword []byte

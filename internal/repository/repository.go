@@ -4,10 +4,14 @@ import (
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/models"
 )
 
+type AuthRepo interface {
+	Register(u models.User) (int, error)
+	Authenticate(u models.User) (int, error)
+}
+
 type UserRepo interface {
 	GetUser(id int) (models.User, error)
 	GetAllUser() ([]models.User, error)
-	CreateUser(u models.User) (int, error)
 	UpdateUser(u models.User) error
 	DeleteUser(id int) error
 }
