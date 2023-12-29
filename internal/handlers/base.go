@@ -1,35 +1,19 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
+
+	u "github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/utils"
 )
 
-type Response struct {
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
-}
-
-func SendJSON(w http.ResponseWriter, r *http.Request, code int, res Response) {
-	jsonBytes, err := json.Marshal(res)
-	if err != nil {
-		http.Error(w, "Error encoding JSON Response", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write(jsonBytes)
-}
-
 func NotFound(w http.ResponseWriter, r *http.Request) {
-	SendJSON(w, r, http.StatusNotFound, Response{
+	u.SendJSON(w, r, http.StatusNotFound, u.Response{
 		Message: "Not Found",
 	})
 }
 
 func MethodNotAllowed(w http.ResponseWriter, r *http.Request) {
-	SendJSON(w, r, http.StatusMethodNotAllowed, Response{
+	u.SendJSON(w, r, http.StatusMethodNotAllowed, u.Response{
 		Message: "Method Not Allowed",
 	})
 }

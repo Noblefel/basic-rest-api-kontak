@@ -10,6 +10,7 @@ import (
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository/dbrepo"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/utils"
+	u "github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,7 +27,7 @@ func NewAuthHandlers(db *sql.DB) *AuthHandlers {
 func (h *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		SendJSON(w, r, http.StatusBadRequest, Response{
+		u.SendJSON(w, r, http.StatusBadRequest, u.Response{
 			Message: "Error parsing form",
 		})
 		return
@@ -40,19 +41,19 @@ func (h *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
 	_, err = h.repo.Register(user)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value") {
-			SendJSON(w, r, http.StatusConflict, Response{
+			u.SendJSON(w, r, http.StatusConflict, u.Response{
 				Message: "Email already in use",
 			})
 			return
 		}
 
-		SendJSON(w, r, http.StatusInternalServerError, Response{
+		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
 			Message: "Error unable to register user",
 		})
 		return
 	}
 
-	SendJSON(w, r, http.StatusCreated, Response{
+	u.SendJSON(w, r, http.StatusCreated, u.Response{
 		Message: "User has been created",
 	})
 }
@@ -60,7 +61,7 @@ func (h *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		SendJSON(w, r, http.StatusBadRequest, Response{
+		u.SendJSON(w, r, http.StatusBadRequest, u.Response{
 			Message: "Error parsing form",
 		})
 		return
@@ -74,13 +75,13 @@ func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	id, err := h.repo.Authenticate(user)
 	if err != nil {
 		if errors.Is(bcrypt.ErrMismatchedHashAndPassword, err) || errors.Is(sql.ErrNoRows, err) {
-			SendJSON(w, r, http.StatusUnauthorized, Response{
+			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
 				Message: "Invalid credentials",
 			})
 			return
 		}
 
-		SendJSON(w, r, http.StatusInternalServerError, Response{
+		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
 			Message: "Error when authenticating",
 		})
 		return
@@ -88,13 +89,13 @@ func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 
 	token, err := utils.GenerateJWT(id)
 	if err != nil {
-		SendJSON(w, r, http.StatusInternalServerError, Response{
+		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
 			Message: "Error when authenticating",
 		})
 		return
 	}
 
-	SendJSON(w, r, http.StatusOK, Response{
+	u.SendJSON(w, r, http.StatusOK, u.Response{
 		Message: "Authenticated",
 		Data:    token,
 	})

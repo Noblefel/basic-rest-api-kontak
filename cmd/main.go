@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/database"
-	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/handlers"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/router"
 	"github.com/joho/godotenv"
 )
@@ -26,15 +25,7 @@ func main() {
 
 	log.Println("Starting server at port:", port)
 
-	authHandlers := handlers.NewAuthHandlers(db)
-	userHandlers := handlers.NewUserHandlers(db)
-	contactHandlers := handlers.NewContactHandlers(db)
-
-	router := router.NewRouter(
-		authHandlers,
-		userHandlers,
-		contactHandlers,
-	)
+	router := router.NewRouter(db)
 
 	server := &http.Server{
 		Addr:    fmt.Sprint("localhost:", port),
