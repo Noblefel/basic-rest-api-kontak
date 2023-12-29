@@ -4,13 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/models"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository/dbrepo"
 	u "github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/utils"
-	"github.com/go-chi/chi/v5"
 )
 
 type ContactHandlers struct {
@@ -39,28 +37,7 @@ func (h *ContactHandlers) All(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandlers) Get(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "contact_id"))
-	if err != nil {
-		u.SendJSON(w, r, http.StatusBadRequest, u.Response{
-			Message: "Invalid id",
-		})
-		return
-	}
-
-	contact, err := h.repo.GetContactWithUser(id)
-	if err != nil {
-		if errors.Is(sql.ErrNoRows, err) {
-			u.SendJSON(w, r, http.StatusNotFound, u.Response{
-				Message: "Contact not found",
-			})
-			return
-		}
-
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
-			Message: "Error when retrieving contact",
-		})
-		return
-	}
+	contact := r.Context().Value("contact").(models.Contact)
 
 	u.SendJSON(w, r, http.StatusOK, u.Response{
 		Message: "Contact retrieved",
@@ -69,15 +46,9 @@ func (h *ContactHandlers) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandlers) GetByUser(w http.ResponseWriter, r *http.Request) {
-	userId, err := strconv.Atoi(chi.URLParam(r, "user_id"))
-	if err != nil {
-		u.SendJSON(w, r, http.StatusBadRequest, u.Response{
-			Message: "Invalid id",
-		})
-		return
-	}
+	user := r.Context().Value("user").(models.User)
 
-	contacts, err := h.repo.GetUserContact(userId)
+	contacts, err := h.repo.GetUserContact(user.Id)
 	if err != nil && !errors.Is(sql.ErrNoRows, err) {
 		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
 			Message: "Error retrieving user's contacts",
@@ -100,8 +71,10 @@ func (h *ContactHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userId := r.Context().Value("user_id").(int)
+
 	contact := models.Contact{
-		UserId:       1,
+		UserId:       userId,
 		Nama:         r.Form.Get("nama"),
 		NomorTelepon: r.Form.Get("nomor_telepon"),
 		Email:        r.Form.Get("email"),
@@ -123,30 +96,7 @@ func (h *ContactHandlers) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandlers) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "contact_id"))
-	if err != nil {
-		u.SendJSON(w, r, http.StatusBadRequest, u.Response{
-			Message: "Invalid id",
-		})
-		return
-	}
-
-	_, err = h.repo.GetContact(id)
-	if err != nil {
-		if errors.Is(sql.ErrNoRows, err) {
-			u.SendJSON(w, r, http.StatusNotFound, u.Response{
-				Message: "Contact not found",
-			})
-			return
-		}
-
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
-			Message: "Error when retrieving contact",
-		})
-		return
-	}
-
-	err = r.ParseForm()
+	err := r.ParseForm()
 	if err != nil {
 		u.SendJSON(w, r, http.StatusBadRequest, u.Response{
 			Message: "Error parsing form",
@@ -154,8 +104,9 @@ func (h *ContactHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contact := models.Contact{
-		Id:           id,
+	contact := r.Context().Value("contact").(models.Contact)
+	contact = models.Contact{
+		Id:           contact.Id,
 		Nama:         r.Form.Get("nama"),
 		NomorTelepon: r.Form.Get("nomor_telepon"),
 		Email:        r.Form.Get("email"),
@@ -176,30 +127,9 @@ func (h *ContactHandlers) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandlers) Delete(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "contact_id"))
-	if err != nil {
-		u.SendJSON(w, r, http.StatusBadRequest, u.Response{
-			Message: "Invalid id",
-		})
-		return
-	}
+	contact := r.Context().Value("contact").(models.Contact)
 
-	_, err = h.repo.GetContact(id)
-	if err != nil {
-		if errors.Is(sql.ErrNoRows, err) {
-			u.SendJSON(w, r, http.StatusNotFound, u.Response{
-				Message: "Contact not found",
-			})
-			return
-		}
-
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
-			Message: "Error when retrieving contact",
-		})
-		return
-	}
-
-	err = h.repo.DeleteContact(id)
+	err := h.repo.DeleteContact(contact.Id)
 	if err != nil {
 		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
 			Message: "Error unable to delete contact",

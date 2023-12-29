@@ -14,12 +14,14 @@ import (
 )
 
 type Middleware struct {
-	user repository.UserRepo
+	user    repository.UserRepo
+	contact repository.ContactRepo
 }
 
 func NewMiddleware(db *sql.DB) *Middleware {
 	return &Middleware{
-		user: dbrepo.NewUserRepo(db),
+		user:    dbrepo.NewUserRepo(db),
+		contact: dbrepo.NewContactRepo(db),
 	}
 }
 
@@ -81,6 +83,44 @@ func (m *Middleware) UserGuard(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), "user", user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (m *Middleware) ContactGuard(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userId := r.Context().Value("user_id").(int)
+		contactId, err := strconv.Atoi(chi.URLParam(r, "contact_id"))
+		if err != nil {
+			u.SendJSON(w, r, http.StatusBadRequest, u.Response{
+				Message: "Invalid contact id",
+			})
+			return
+		}
+
+		contact, err := m.contact.GetContact(contactId)
+		if err != nil {
+			if errors.Is(sql.ErrNoRows, err) {
+				u.SendJSON(w, r, http.StatusNotFound, u.Response{
+					Message: "Contact not found",
+				})
+				return
+			}
+
+			u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+				Message: "Error when retrieving contact",
+			})
+			return
+		}
+
+		if userId != contact.UserId {
+			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
+				Message: "Unauthorized - Sorry, you have no permission to do that",
+			})
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "contact", contact)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

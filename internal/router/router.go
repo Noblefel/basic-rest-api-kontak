@@ -45,12 +45,13 @@ func (r *router) Routes() http.Handler {
 			mux.Get("/contacts", r.contact.GetByUser)
 		})
 
-		mux.Route("/contacts", func(mux chi.Router) {
-			mux.Get("/", r.contact.All)
-			mux.Post("/create", r.contact.Create)
-			mux.Get("/{contact_id}", r.contact.Get)
-			mux.Post("/{contact_id}/update", r.contact.Update)
-			mux.Post("/{contact_id}/delete", r.contact.Delete)
+		mux.Get("/contacts", r.contact.All)
+		mux.Post("/contacts/create", r.contact.Create)
+		mux.Route("/contacts/{contact_id}", func(mux chi.Router) {
+			mux.Use(middleware.ContactGuard)
+			mux.Get("/", r.contact.Get)
+			mux.Post("/update", r.contact.Update)
+			mux.Post("/delete", r.contact.Delete)
 		})
 	})
 

@@ -20,7 +20,6 @@ func NewContactRepo(db *sql.DB) repository.ContactRepo {
 
 func (cr *ContactRepo) GetContact(id int) (models.Contact, error) {
 	var contact models.Contact
-	contact.User = &models.User{}
 
 	query := `
 	SELECT id, user_id, nama, nomor_telepon, email, alamat, created_at, updated_at 
