@@ -91,7 +91,7 @@ func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		Password: form.Get("password"),
 	}
 
-	id, err := h.repo.Authenticate(user)
+	id, level, err := h.repo.Authenticate(user)
 	if err != nil {
 		if errors.Is(bcrypt.ErrMismatchedHashAndPassword, err) || errors.Is(sql.ErrNoRows, err) {
 			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
@@ -106,7 +106,7 @@ func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := utils.GenerateJWT(id)
+	token, err := utils.GenerateJWT(id, level)
 	if err != nil {
 		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
 			Message: "Error when authenticating",

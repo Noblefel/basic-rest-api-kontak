@@ -47,21 +47,22 @@ func (ar *AuthRepo) Register(u models.User) (int, error) {
 	return id, nil
 }
 
-func (ar *AuthRepo) Authenticate(u models.User) (int, error) {
-	query := `SELECT id, password FROM users WHERE email = $1`
+func (ar *AuthRepo) Authenticate(u models.User) (int, int, error) {
+	query := `SELECT id, password, level FROM users WHERE email = $1`
 
 	var id int
 	var password string
+	var level int
 
-	err := ar.db.QueryRow(query, u.Email).Scan(&id, &password)
+	err := ar.db.QueryRow(query, u.Email).Scan(&id, &password, &level)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(password), []byte(u.Password))
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
-	return id, nil
+	return id, level, nil
 }

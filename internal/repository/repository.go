@@ -6,7 +6,7 @@ import (
 
 type AuthRepo interface {
 	Register(u models.User) (int, error)
-	Authenticate(u models.User) (int, error)
+	Authenticate(u models.User) (int, int, error)
 }
 
 type UserRepo interface {

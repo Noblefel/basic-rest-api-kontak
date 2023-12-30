@@ -36,7 +36,12 @@ func (r *router) Routes() http.Handler {
 	mux.Group(func(mux chi.Router) {
 		mux.Use(middleware.Auth)
 
-		mux.Get("/users", r.user.All)
+		mux.Group(func(mux chi.Router) {
+			mux.Use(middleware.AdminOnly)
+			mux.Get("/users", r.user.All)
+			mux.Get("/contacts", r.contact.All)
+		})
+
 		mux.Route("/users/{user_id}", func(mux chi.Router) {
 			mux.Use(middleware.UserGuard)
 			mux.Get("/", r.user.Get)
@@ -45,7 +50,6 @@ func (r *router) Routes() http.Handler {
 			mux.Get("/contacts", r.contact.GetByUser)
 		})
 
-		mux.Get("/contacts", r.contact.All)
 		mux.Post("/contacts/create", r.contact.Create)
 		mux.Route("/contacts/{contact_id}", func(mux chi.Router) {
 			mux.Use(middleware.ContactGuard)

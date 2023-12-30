@@ -8,9 +8,10 @@ import (
 
 var secret_key = []byte("key")
 
-func GenerateJWT(userId int) (string, error) {
+func GenerateJWT(userId, level int) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["user_id"] = userId
+	claims["level"] = level
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
@@ -22,8 +23,8 @@ func GenerateJWT(userId int) (string, error) {
 	return tokenString, nil
 }
 
-func VerifyJWT(s string) (float64, error) {
-	var userId float64
+func VerifyJWT(s string) (float64, float64, error) {
+	var userId, level float64
 
 	claims := jwt.MapClaims{}
 
@@ -37,14 +38,20 @@ func VerifyJWT(s string) (float64, error) {
 	})
 
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	if !token.Valid {
-		return 0, errors.New("Unauthorized")
+		return 0, 0, errors.New("Unauthorized")
 	}
 
 	userId = claims["user_id"].(float64)
 
-	return userId, nil
+	if claims["level"] == nil {
+		level = 0
+	} else {
+		level = claims["level"].(float64)
+	}
+
+	return userId, level, nil
 }

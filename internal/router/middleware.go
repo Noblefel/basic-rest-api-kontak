@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/models"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository/dbrepo"
 	u "github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/utils"
@@ -36,7 +37,7 @@ func (m *Middleware) Auth(next http.Handler) http.Handler {
 			return
 		}
 
-		userId, err := u.VerifyJWT(tokenString)
+		userId, level, err := u.VerifyJWT(tokenString)
 		if err != nil {
 			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
 				Message: "Unauthorized",
@@ -45,6 +46,7 @@ func (m *Middleware) Auth(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), "user_id", int(userId))
+		ctx = context.WithValue(ctx, "level", int(level))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -52,6 +54,7 @@ func (m *Middleware) Auth(next http.Handler) http.Handler {
 func (m *Middleware) UserGuard(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := r.Context().Value("user_id").(int)
+		userLevel := r.Context().Value("level").(int)
 		userIdRoute, err := strconv.Atoi(chi.URLParam(r, "user_id"))
 		if err != nil {
 			u.SendJSON(w, r, http.StatusBadRequest, u.Response{
@@ -60,7 +63,7 @@ func (m *Middleware) UserGuard(next http.Handler) http.Handler {
 			return
 		}
 
-		if userId != userIdRoute {
+		if userId != userIdRoute && userLevel != models.ROLE_ADMIN {
 			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
 				Message: "Unauthorized - Sorry you have no permission to do that",
 			})
@@ -90,6 +93,7 @@ func (m *Middleware) UserGuard(next http.Handler) http.Handler {
 func (m *Middleware) ContactGuard(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := r.Context().Value("user_id").(int)
+		userLevel := r.Context().Value("level").(int)
 		contactId, err := strconv.Atoi(chi.URLParam(r, "contact_id"))
 		if err != nil {
 			u.SendJSON(w, r, http.StatusBadRequest, u.Response{
@@ -113,7 +117,7 @@ func (m *Middleware) ContactGuard(next http.Handler) http.Handler {
 			return
 		}
 
-		if userId != contact.UserId {
+		if userId != contact.UserId && userLevel != models.ROLE_ADMIN {
 			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
 				Message: "Unauthorized - Sorry, you have no permission to do that",
 			})
@@ -122,5 +126,20 @@ func (m *Middleware) ContactGuard(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), "contact", contact)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (m *Middleware) AdminOnly(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userLevel := r.Context().Value("level").(int)
+
+		if userLevel != models.ROLE_ADMIN {
+			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
+				Message: "Unauthorized - Sorry you have no permission to do that",
+			})
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
