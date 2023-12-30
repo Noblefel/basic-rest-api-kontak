@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/forms"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/models"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository/dbrepo"
@@ -71,14 +72,22 @@ func (h *ContactHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	form := forms.New(r.PostForm)
+	form.Required("nama")
+	form.Email("email")
+
+	if !form.ValidOrErr(w, r) {
+		return
+	}
+
 	userId := r.Context().Value("user_id").(int)
 
 	contact := models.Contact{
 		UserId:       userId,
-		Nama:         r.Form.Get("nama"),
-		NomorTelepon: r.Form.Get("nomor_telepon"),
-		Email:        r.Form.Get("email"),
-		Alamat:       r.Form.Get("alamat"),
+		Nama:         form.Get("nama"),
+		NomorTelepon: form.Get("nomor_telepon"),
+		Email:        form.Get("email"),
+		Alamat:       form.Get("alamat"),
 	}
 
 	id, err := h.repo.CreateContact(contact)
@@ -104,13 +113,21 @@ func (h *ContactHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	form := forms.New(r.PostForm)
+	form.Required("nama")
+	form.Email("email")
+
+	if !form.ValidOrErr(w, r) {
+		return
+	}
+
 	contact := r.Context().Value("contact").(models.Contact)
 	contact = models.Contact{
 		Id:           contact.Id,
-		Nama:         r.Form.Get("nama"),
-		NomorTelepon: r.Form.Get("nomor_telepon"),
-		Email:        r.Form.Get("email"),
-		Alamat:       r.Form.Get("alamat"),
+		Nama:         form.Get("nama"),
+		NomorTelepon: form.Get("nomor_telepon"),
+		Email:        form.Get("email"),
+		Alamat:       form.Get("alamat"),
 	}
 
 	err = h.repo.UpdateContact(contact)

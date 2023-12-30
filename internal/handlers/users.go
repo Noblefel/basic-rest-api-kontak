@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/forms"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/models"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository/dbrepo"
@@ -56,10 +57,19 @@ func (h *UserHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	form := forms.New(r.PostForm)
+	form.Required("email")
+	form.Email("email")
+	form.StringMinLength("password", 8)
+
+	if !form.ValidOrErr(w, r) {
+		return
+	}
+
 	newData := models.User{
 		Id:       user.Id,
-		Email:    r.Form.Get("email"),
-		Password: r.Form.Get("password"),
+		Email:    form.Get("email"),
+		Password: form.Get("password"),
 	}
 
 	err = h.repo.UpdateUser(newData)
