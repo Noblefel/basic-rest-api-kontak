@@ -22,6 +22,12 @@ func NewContactHandlers(db *sql.DB) *ContactHandlers {
 	}
 }
 
+func NewTestContactHandlers() *ContactHandlers {
+	return &ContactHandlers{
+		repo: dbrepo.NewTestContactRepo(),
+	}
+}
+
 func (h *ContactHandlers) All(w http.ResponseWriter, r *http.Request) {
 	contacts, err := h.repo.GetAllContact()
 	if err != nil && !errors.Is(sql.ErrNoRows, err) {

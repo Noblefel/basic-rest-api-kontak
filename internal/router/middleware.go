@@ -26,6 +26,13 @@ func NewMiddleware(db *sql.DB) *Middleware {
 	}
 }
 
+func NewTestMiddleware() *Middleware {
+	return &Middleware{
+		user:    dbrepo.NewTestUserRepo(),
+		contact: dbrepo.NewTestContactRepo(),
+	}
+}
+
 func (m *Middleware) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")

@@ -13,10 +13,16 @@ type AuthRepo struct {
 	db *sql.DB
 }
 
+type testAuthRepo struct{}
+
 func NewAuthRepo(db *sql.DB) repository.AuthRepo {
 	return &AuthRepo{
 		db: db,
 	}
+}
+
+func NewTestAuthRepo() repository.AuthRepo {
+	return &testAuthRepo{}
 }
 
 func (ar *AuthRepo) Register(u models.User) (int, error) {

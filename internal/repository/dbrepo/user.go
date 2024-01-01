@@ -13,10 +13,16 @@ type UserRepo struct {
 	db *sql.DB
 }
 
+type testUserRepo struct{}
+
 func NewUserRepo(db *sql.DB) repository.UserRepo {
 	return &UserRepo{
 		db: db,
 	}
+}
+
+func NewTestUserRepo() repository.UserRepo {
+	return &testUserRepo{}
 }
 
 func (ur *UserRepo) GetUser(id int) (models.User, error) {

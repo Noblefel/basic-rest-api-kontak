@@ -9,6 +9,10 @@ import (
 var secret_key = []byte("key")
 
 func GenerateJWT(userId, level int) (string, error) {
+	if userId <= 0 {
+		return "", errors.New("Invalid id")
+	}
+
 	claims := jwt.MapClaims{}
 	claims["user_id"] = userId
 	claims["level"] = level

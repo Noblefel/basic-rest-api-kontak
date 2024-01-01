@@ -24,7 +24,7 @@ func (e errors) Add(field, message string) {
 func New(data url.Values) *Form {
 	return &Form{
 		data,
-		map[string][]string{},
+		make(errors),
 	}
 }
 
@@ -41,6 +41,7 @@ func (f *Form) Required(fields ...string) {
 func (f *Form) StringMinLength(field string, n int) {
 	value := strings.TrimSpace(f.Get(field))
 
+	// This is for optional form fields
 	if value == "" {
 		return
 	}
@@ -51,7 +52,8 @@ func (f *Form) StringMinLength(field string, n int) {
 }
 
 func (f *Form) Email(field string) {
-	if strings.TrimSpace(f.Get("email")) == "" {
+	// This is for optional form fields
+	if strings.TrimSpace(f.Get(field)) == "" {
 		return
 	}
 

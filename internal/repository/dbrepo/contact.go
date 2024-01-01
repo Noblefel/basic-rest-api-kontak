@@ -12,10 +12,16 @@ type ContactRepo struct {
 	db *sql.DB
 }
 
+type testContactRepo struct{}
+
 func NewContactRepo(db *sql.DB) repository.ContactRepo {
 	return &ContactRepo{
 		db: db,
 	}
+}
+
+func NewTestContactRepo() repository.ContactRepo {
+	return &testContactRepo{}
 }
 
 func (cr *ContactRepo) GetContact(id int) (models.Contact, error) {

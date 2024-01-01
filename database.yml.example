@@ -2,7 +2,7 @@
 development:
   dialect: postgres
   database: managemen_kontak
-  user:
+  user: postgres
   password:
   host: 127.0.0.1
   pool: 5

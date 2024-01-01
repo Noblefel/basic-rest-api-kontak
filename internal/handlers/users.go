@@ -22,6 +22,12 @@ func NewUserHandlers(db *sql.DB) *UserHandlers {
 	}
 }
 
+func NewTestUserHandlers() *UserHandlers {
+	return &UserHandlers{
+		repo: dbrepo.NewTestUserRepo(),
+	}
+}
+
 func (h *UserHandlers) All(w http.ResponseWriter, r *http.Request) {
 	users, err := h.repo.GetAllUser()
 	if err != nil && !errors.Is(sql.ErrNoRows, err) {

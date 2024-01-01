@@ -10,7 +10,6 @@ import (
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/models"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository"
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository/dbrepo"
-	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/utils"
 	u "github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -22,6 +21,12 @@ type AuthHandlers struct {
 func NewAuthHandlers(db *sql.DB) *AuthHandlers {
 	return &AuthHandlers{
 		repo: dbrepo.NewAuthRepo(db),
+	}
+}
+
+func NewTestAuthHandlers() *AuthHandlers {
+	return &AuthHandlers{
+		repo: dbrepo.NewTestAuthRepo(),
 	}
 }
 
@@ -106,7 +111,7 @@ func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := utils.GenerateJWT(id, level)
+	token, err := u.GenerateJWT(id, level)
 	if err != nil {
 		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
 			Message: "Error when authenticating",
