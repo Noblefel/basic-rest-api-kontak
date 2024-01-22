@@ -31,13 +31,13 @@ func NewTestUserHandlers() *UserHandlers {
 func (h *UserHandlers) All(w http.ResponseWriter, r *http.Request) {
 	users, err := h.repo.GetAllUser()
 	if err != nil && !errors.Is(sql.ErrNoRows, err) {
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+		u.SendJSON(w, http.StatusInternalServerError, u.Response{
 			Message: "Error when retrieving all users",
 		})
 		return
 	}
 
-	u.SendJSON(w, r, http.StatusOK, u.Response{
+	u.SendJSON(w, http.StatusOK, u.Response{
 		Message: "Users retrieved succesfully",
 		Data:    users,
 	})
@@ -46,7 +46,7 @@ func (h *UserHandlers) All(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(models.User)
 
-	u.SendJSON(w, r, http.StatusOK, u.Response{
+	u.SendJSON(w, http.StatusOK, u.Response{
 		Message: "User retrieved succesfully",
 		Data:    user,
 	})
@@ -57,7 +57,7 @@ func (h *UserHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
 	if err != nil {
-		u.SendJSON(w, r, http.StatusBadRequest, u.Response{
+		u.SendJSON(w, http.StatusBadRequest, u.Response{
 			Message: "Error parsing form",
 		})
 		return
@@ -80,13 +80,13 @@ func (h *UserHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = h.repo.UpdateUser(newData)
 	if err != nil {
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+		u.SendJSON(w, http.StatusInternalServerError, u.Response{
 			Message: "Error unable to update user",
 		})
 		return
 	}
 
-	u.SendJSON(w, r, http.StatusOK, u.Response{
+	u.SendJSON(w, http.StatusOK, u.Response{
 		Message: "User updated",
 	})
 }
@@ -96,13 +96,13 @@ func (h *UserHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err := h.repo.DeleteUser(user.Id)
 	if err != nil {
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+		u.SendJSON(w, http.StatusInternalServerError, u.Response{
 			Message: "Error unable to delete user",
 		})
 		return
 	}
 
-	u.SendJSON(w, r, http.StatusOK, u.Response{
+	u.SendJSON(w, http.StatusOK, u.Response{
 		Message: "User deleted",
 	})
 }

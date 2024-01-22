@@ -11,7 +11,7 @@ type Response struct {
 	Errors  interface{} `json:"errors,omitempty"`
 }
 
-func SendJSON(w http.ResponseWriter, r *http.Request, code int, res Response) {
+func SendJSON(w http.ResponseWriter, code int, res Response) {
 	jsonBytes, err := json.Marshal(res)
 	if err != nil {
 		http.Error(w, "Error encoding JSON Response", http.StatusInternalServerError)

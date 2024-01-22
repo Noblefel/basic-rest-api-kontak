@@ -38,7 +38,7 @@ func (m *Middleware) Auth(next http.Handler) http.Handler {
 		tokenString := r.Header.Get("Authorization")
 
 		if tokenString == "" {
-			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
+			u.SendJSON(w, http.StatusUnauthorized, u.Response{
 				Message: "Unauthorized",
 			})
 			return
@@ -46,7 +46,7 @@ func (m *Middleware) Auth(next http.Handler) http.Handler {
 
 		userId, level, err := u.VerifyJWT(tokenString)
 		if err != nil {
-			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
+			u.SendJSON(w, http.StatusUnauthorized, u.Response{
 				Message: "Unauthorized",
 			})
 			return
@@ -64,14 +64,14 @@ func (m *Middleware) UserGuard(next http.Handler) http.Handler {
 		userLevel := r.Context().Value("level").(int)
 		userIdRoute, err := strconv.Atoi(chi.URLParam(r, "user_id"))
 		if err != nil {
-			u.SendJSON(w, r, http.StatusBadRequest, u.Response{
+			u.SendJSON(w, http.StatusBadRequest, u.Response{
 				Message: "Invalid id",
 			})
 			return
 		}
 
 		if userId != userIdRoute && userLevel != models.ROLE_ADMIN {
-			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
+			u.SendJSON(w, http.StatusUnauthorized, u.Response{
 				Message: "Unauthorized - Sorry you have no permission to do that",
 			})
 			return
@@ -80,13 +80,13 @@ func (m *Middleware) UserGuard(next http.Handler) http.Handler {
 		user, err := m.user.GetUser(userIdRoute)
 		if err != nil {
 			if errors.Is(sql.ErrNoRows, err) {
-				u.SendJSON(w, r, http.StatusNotFound, u.Response{
+				u.SendJSON(w, http.StatusNotFound, u.Response{
 					Message: "User not found",
 				})
 				return
 			}
 
-			u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+			u.SendJSON(w, http.StatusInternalServerError, u.Response{
 				Message: "Error when retrieving a user",
 			})
 			return
@@ -103,7 +103,7 @@ func (m *Middleware) ContactGuard(next http.Handler) http.Handler {
 		userLevel := r.Context().Value("level").(int)
 		contactId, err := strconv.Atoi(chi.URLParam(r, "contact_id"))
 		if err != nil {
-			u.SendJSON(w, r, http.StatusBadRequest, u.Response{
+			u.SendJSON(w, http.StatusBadRequest, u.Response{
 				Message: "Invalid contact id",
 			})
 			return
@@ -112,20 +112,20 @@ func (m *Middleware) ContactGuard(next http.Handler) http.Handler {
 		contact, err := m.contact.GetContact(contactId)
 		if err != nil {
 			if errors.Is(sql.ErrNoRows, err) {
-				u.SendJSON(w, r, http.StatusNotFound, u.Response{
+				u.SendJSON(w, http.StatusNotFound, u.Response{
 					Message: "Contact not found",
 				})
 				return
 			}
 
-			u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+			u.SendJSON(w, http.StatusInternalServerError, u.Response{
 				Message: "Error when retrieving contact",
 			})
 			return
 		}
 
 		if userId != contact.UserId && userLevel != models.ROLE_ADMIN {
-			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
+			u.SendJSON(w, http.StatusUnauthorized, u.Response{
 				Message: "Unauthorized - Sorry, you have no permission to do that",
 			})
 			return
@@ -141,7 +141,7 @@ func (m *Middleware) AdminOnly(next http.Handler) http.Handler {
 		userLevel := r.Context().Value("level").(int)
 
 		if userLevel != models.ROLE_ADMIN {
-			u.SendJSON(w, r, http.StatusUnauthorized, u.Response{
+			u.SendJSON(w, http.StatusUnauthorized, u.Response{
 				Message: "Unauthorized - Sorry you have no permission to do that",
 			})
 			return

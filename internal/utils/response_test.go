@@ -40,10 +40,9 @@ var responseTests = []struct {
 
 func TestResponse(t *testing.T) {
 	for _, tt := range responseTests {
-		r := httptest.NewRequest("GET", "/", nil)
 		w := httptest.NewRecorder()
 
-		SendJSON(w, r, tt.inputStatusCode, tt.payload)
+		SendJSON(w, tt.inputStatusCode, tt.payload)
 
 		if w.Code != tt.expectedStatusCode {
 			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.expectedStatusCode)

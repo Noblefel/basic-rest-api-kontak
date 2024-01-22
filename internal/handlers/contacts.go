@@ -31,13 +31,13 @@ func NewTestContactHandlers() *ContactHandlers {
 func (h *ContactHandlers) All(w http.ResponseWriter, r *http.Request) {
 	contacts, err := h.repo.GetAllContact()
 	if err != nil && !errors.Is(sql.ErrNoRows, err) {
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+		u.SendJSON(w, http.StatusInternalServerError, u.Response{
 			Message: "Error retrieving all contact",
 		})
 		return
 	}
 
-	u.SendJSON(w, r, http.StatusOK, u.Response{
+	u.SendJSON(w, http.StatusOK, u.Response{
 		Message: "Contacts retrieved",
 		Data:    contacts,
 	})
@@ -46,7 +46,7 @@ func (h *ContactHandlers) All(w http.ResponseWriter, r *http.Request) {
 func (h *ContactHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	contact := r.Context().Value("contact").(models.Contact)
 
-	u.SendJSON(w, r, http.StatusOK, u.Response{
+	u.SendJSON(w, http.StatusOK, u.Response{
 		Message: "Contact retrieved",
 		Data:    contact,
 	})
@@ -57,13 +57,13 @@ func (h *ContactHandlers) GetByUser(w http.ResponseWriter, r *http.Request) {
 
 	contacts, err := h.repo.GetUserContact(user.Id)
 	if err != nil && !errors.Is(sql.ErrNoRows, err) {
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+		u.SendJSON(w, http.StatusInternalServerError, u.Response{
 			Message: "Error retrieving user's contacts",
 		})
 		return
 	}
 
-	u.SendJSON(w, r, http.StatusOK, u.Response{
+	u.SendJSON(w, http.StatusOK, u.Response{
 		Message: "User's contacts retrieved",
 		Data:    contacts,
 	})
@@ -72,7 +72,7 @@ func (h *ContactHandlers) GetByUser(w http.ResponseWriter, r *http.Request) {
 func (h *ContactHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		u.SendJSON(w, r, http.StatusBadRequest, u.Response{
+		u.SendJSON(w, http.StatusBadRequest, u.Response{
 			Message: "Error parsing form",
 		})
 		return
@@ -98,13 +98,13 @@ func (h *ContactHandlers) Create(w http.ResponseWriter, r *http.Request) {
 
 	id, err := h.repo.CreateContact(contact)
 	if err != nil {
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+		u.SendJSON(w, http.StatusInternalServerError, u.Response{
 			Message: "Error unable to create contact",
 		})
 		return
 	}
 
-	u.SendJSON(w, r, http.StatusCreated, u.Response{
+	u.SendJSON(w, http.StatusCreated, u.Response{
 		Message: "Contact created",
 		Data:    id,
 	})
@@ -113,7 +113,7 @@ func (h *ContactHandlers) Create(w http.ResponseWriter, r *http.Request) {
 func (h *ContactHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		u.SendJSON(w, r, http.StatusBadRequest, u.Response{
+		u.SendJSON(w, http.StatusBadRequest, u.Response{
 			Message: "Error parsing form",
 		})
 		return
@@ -138,13 +138,13 @@ func (h *ContactHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = h.repo.UpdateContact(contact)
 	if err != nil {
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+		u.SendJSON(w, http.StatusInternalServerError, u.Response{
 			Message: "Error unable to update contact",
 		})
 		return
 	}
 
-	u.SendJSON(w, r, http.StatusOK, u.Response{
+	u.SendJSON(w, http.StatusOK, u.Response{
 		Message: "Contact updated",
 	})
 }
@@ -154,13 +154,13 @@ func (h *ContactHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err := h.repo.DeleteContact(contact.Id)
 	if err != nil {
-		u.SendJSON(w, r, http.StatusInternalServerError, u.Response{
+		u.SendJSON(w, http.StatusInternalServerError, u.Response{
 			Message: "Error unable to delete contact",
 		})
 		return
 	}
 
-	u.SendJSON(w, r, http.StatusOK, u.Response{
+	u.SendJSON(w, http.StatusOK, u.Response{
 		Message: "Contact deleted",
 	})
 }
