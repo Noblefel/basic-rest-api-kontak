@@ -7,11 +7,11 @@ import (
 
 type Response struct {
 	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	Data    interface{} `json:"data,omitempty"`
 	Errors  interface{} `json:"errors,omitempty"`
 }
 
-func SendJSON(w http.ResponseWriter, code int, res Response) {
+func JSON(w http.ResponseWriter, code int, res Response) {
 	jsonBytes, err := json.Marshal(res)
 	if err != nil {
 		http.Error(w, "Error encoding JSON Response", http.StatusInternalServerError)
@@ -21,4 +21,8 @@ func SendJSON(w http.ResponseWriter, code int, res Response) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(jsonBytes)
+}
+
+func Message(w http.ResponseWriter, code int, msg string) {
+	JSON(w, code, Response{Message: msg})
 }

@@ -25,152 +25,111 @@ func TestNewUserHandlers(t *testing.T) {
 	}
 }
 
-var userAllTests = []struct {
-	name       string
-	statusCode int
-}{
-	{
-		name:       "userAll-ok",
-		statusCode: http.StatusOK,
-	},
-}
-
 func TestUser_All(t *testing.T) {
-	for _, tt := range userAllTests {
-		r, _ := http.NewRequest("GET", "/users", nil)
-		w := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(h.user.All)
-		handler.ServeHTTP(w, r)
-
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+	var tests = []struct {
+		name       string
+		statusCode int
+	}{
+		{"success", http.StatusOK},
 	}
-}
 
-var userGetTests = []struct {
-	name       string
-	user       models.User
-	statusCode int
-}{
-	{
-		name: "userAll-ok",
-		user: models.User{
-			Id: 1,
-		},
-		statusCode: http.StatusOK,
-	},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, _ := http.NewRequest("GET", "/users", nil)
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.user.All)
+			handler.ServeHTTP(w, r)
+
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
+	}
 }
 
 func TestUser_Get(t *testing.T) {
-	for _, tt := range userGetTests {
-		r, _ := http.NewRequest("GET", fmt.Sprint("/users/", tt.user.Id), nil)
-		ctx := context.WithValue(r.Context(), "user", tt.user)
-		r = r.WithContext(ctx)
-		w := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(h.user.Get)
-		handler.ServeHTTP(w, r)
-
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+	var tests = []struct {
+		name       string
+		userId     int
+		statusCode int
+	}{
+		{"success", 1, http.StatusOK},
 	}
-}
 
-var userUpdateTests = []struct {
-	name       string
-	user       models.User
-	form       url.Values
-	statusCode int
-}{
-	{
-		name: "userUpdate-ok",
-		user: models.User{Id: 1},
-		form: url.Values{
-			"email":    {"test@example.com"},
-			"password": {"password"},
-		},
-		statusCode: http.StatusOK,
-	},
-	{
-		name:       "userUpdate-error-parsing-form",
-		user:       models.User{},
-		form:       nil,
-		statusCode: http.StatusBadRequest,
-	},
-	{
-		name: "userUpdate-error-form-validation",
-		user: models.User{},
-		form: url.Values{
-			"email": {"x"},
-		},
-		statusCode: http.StatusBadRequest,
-	},
-	{
-		name: "userUpdate-error-updating-user",
-		user: models.User{Id: -1},
-		form: url.Values{
-			"email":    {"test@example.com"},
-			"password": {"password"},
-		},
-		statusCode: http.StatusInternalServerError,
-	},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, _ := http.NewRequest("GET", fmt.Sprint("/users/", tt.userId), nil)
+			ctx := context.WithValue(r.Context(), "user", models.User{Id: tt.userId})
+			r = r.WithContext(ctx)
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.user.Get)
+			handler.ServeHTTP(w, r)
+
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
+	}
 }
 
 func TestUser_Update(t *testing.T) {
-	for _, tt := range userUpdateTests {
-		var r *http.Request
-		if tt.form != nil {
-			r, _ = http.NewRequest("POST", fmt.Sprint("/users/", tt.user.Id), strings.NewReader(tt.form.Encode()))
-		} else {
-			r, _ = http.NewRequest("POST", fmt.Sprint("/users/", tt.user.Id), nil)
-		}
+	var tests = []struct {
+		name       string
+		userId     int
+		form       url.Values
+		statusCode int
+	}{
+		{"success", 1, url.Values{"email": {"test@example.com"}, "password": {"password"}}, http.StatusOK},
+		{"error parsing form", 1, nil, http.StatusBadRequest},
+		{"error validation", 1, url.Values{"email": {"x"}}, http.StatusBadRequest},
+		{"error updating user", -1, url.Values{"email": {"test@example.com"}, "password": {"password"}}, http.StatusInternalServerError},
+	}
 
-		ctx := context.WithValue(r.Context(), "user", tt.user)
-		r = r.WithContext(ctx)
-		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		w := httptest.NewRecorder()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var r *http.Request
+			if tt.form != nil {
+				r, _ = http.NewRequest("PUT", fmt.Sprint("/users/", tt.userId), strings.NewReader(tt.form.Encode()))
+			} else {
+				r, _ = http.NewRequest("PUT", fmt.Sprint("/users/", tt.userId), nil)
+			}
 
-		handler := http.HandlerFunc(h.user.Update)
-		handler.ServeHTTP(w, r)
+			ctx := context.WithValue(r.Context(), "user", models.User{Id: tt.userId})
+			r = r.WithContext(ctx)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.user.Update)
+			handler.ServeHTTP(w, r)
 
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
 	}
 }
 
-var userDeleteTests = []struct {
-	name       string
-	user       models.User
-	statusCode int
-}{
-	{
-		name:       "userDelete-ok",
-		user:       models.User{Id: 1},
-		statusCode: http.StatusOK,
-	},
-	{
-		name:       "userDelete-error-deleting-user",
-		user:       models.User{Id: -1},
-		statusCode: http.StatusInternalServerError,
-	},
-}
-
 func TestUser_Delete(t *testing.T) {
-	for _, tt := range userDeleteTests {
-		r, _ := http.NewRequest("POST", fmt.Sprint("/users/", tt.user.Id), nil)
-		ctx := context.WithValue(r.Context(), "user", tt.user)
-		r = r.WithContext(ctx)
-		w := httptest.NewRecorder()
+	var tests = []struct {
+		name       string
+		userId     int
+		statusCode int
+	}{
+		{"success", 1, http.StatusOK},
+		{"error deleting user", -1, http.StatusInternalServerError},
+	}
 
-		handler := http.HandlerFunc(h.user.Delete)
-		handler.ServeHTTP(w, r)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, _ := http.NewRequest("DELETE", fmt.Sprint("/users/", tt.userId), nil)
+			ctx := context.WithValue(r.Context(), "user", models.User{Id: tt.userId})
+			r = r.WithContext(ctx)
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.user.Delete)
+			handler.ServeHTTP(w, r)
 
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
 	}
 }

@@ -28,8 +28,8 @@ func NewMiddleware(db *sql.DB) *Middleware {
 
 func NewTestMiddleware() *Middleware {
 	return &Middleware{
-		user:    dbrepo.NewTestUserRepo(),
-		contact: dbrepo.NewTestContactRepo(),
+		user:    dbrepo.NewMockUserRepo(),
+		contact: dbrepo.NewMockContactRepo(),
 	}
 }
 
@@ -38,17 +38,13 @@ func (m *Middleware) Auth(next http.Handler) http.Handler {
 		tokenString := r.Header.Get("Authorization")
 
 		if tokenString == "" {
-			u.SendJSON(w, http.StatusUnauthorized, u.Response{
-				Message: "Unauthorized",
-			})
+			u.Message(w, http.StatusUnauthorized, "Unauthorized")
 			return
 		}
 
 		userId, level, err := u.VerifyJWT(tokenString)
 		if err != nil {
-			u.SendJSON(w, http.StatusUnauthorized, u.Response{
-				Message: "Unauthorized",
-			})
+			u.Message(w, http.StatusUnauthorized, "Unauthorized")
 			return
 		}
 
@@ -64,31 +60,23 @@ func (m *Middleware) UserGuard(next http.Handler) http.Handler {
 		userLevel := r.Context().Value("level").(int)
 		userIdRoute, err := strconv.Atoi(chi.URLParam(r, "user_id"))
 		if err != nil {
-			u.SendJSON(w, http.StatusBadRequest, u.Response{
-				Message: "Invalid id",
-			})
+			u.Message(w, http.StatusBadRequest, "Invalid id")
 			return
 		}
 
 		if userId != userIdRoute && userLevel != models.ROLE_ADMIN {
-			u.SendJSON(w, http.StatusUnauthorized, u.Response{
-				Message: "Unauthorized - Sorry you have no permission to do that",
-			})
+			u.Message(w, http.StatusUnauthorized, "Sorry you have no permission to do that")
 			return
 		}
 
 		user, err := m.user.GetUser(userIdRoute)
 		if err != nil {
 			if errors.Is(sql.ErrNoRows, err) {
-				u.SendJSON(w, http.StatusNotFound, u.Response{
-					Message: "User not found",
-				})
+				u.Message(w, http.StatusNotFound, "User not found")
 				return
 			}
 
-			u.SendJSON(w, http.StatusInternalServerError, u.Response{
-				Message: "Error when retrieving a user",
-			})
+			u.Message(w, http.StatusInternalServerError, "Error when retrieving a user")
 			return
 		}
 
@@ -103,31 +91,23 @@ func (m *Middleware) ContactGuard(next http.Handler) http.Handler {
 		userLevel := r.Context().Value("level").(int)
 		contactId, err := strconv.Atoi(chi.URLParam(r, "contact_id"))
 		if err != nil {
-			u.SendJSON(w, http.StatusBadRequest, u.Response{
-				Message: "Invalid contact id",
-			})
+			u.Message(w, http.StatusBadRequest, "Invalid contact id")
 			return
 		}
 
 		contact, err := m.contact.GetContact(contactId)
 		if err != nil {
 			if errors.Is(sql.ErrNoRows, err) {
-				u.SendJSON(w, http.StatusNotFound, u.Response{
-					Message: "Contact not found",
-				})
+				u.Message(w, http.StatusNotFound, "Contact not found")
 				return
 			}
 
-			u.SendJSON(w, http.StatusInternalServerError, u.Response{
-				Message: "Error when retrieving contact",
-			})
+			u.Message(w, http.StatusInternalServerError, "Error when retrieving contact")
 			return
 		}
 
 		if userId != contact.UserId && userLevel != models.ROLE_ADMIN {
-			u.SendJSON(w, http.StatusUnauthorized, u.Response{
-				Message: "Unauthorized - Sorry, you have no permission to do that",
-			})
+			u.Message(w, http.StatusUnauthorized, "Sorry, you have no permission to do that")
 			return
 		}
 
@@ -141,9 +121,7 @@ func (m *Middleware) AdminOnly(next http.Handler) http.Handler {
 		userLevel := r.Context().Value("level").(int)
 
 		if userLevel != models.ROLE_ADMIN {
-			u.SendJSON(w, http.StatusUnauthorized, u.Response{
-				Message: "Unauthorized - Sorry you have no permission to do that",
-			})
+			u.Message(w, http.StatusUnauthorized, "Sorry you have no permission to do that")
 			return
 		}
 

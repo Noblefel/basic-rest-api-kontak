@@ -25,249 +25,174 @@ func TestNewContactHandlers(t *testing.T) {
 	}
 }
 
-var contactAllTests = []struct {
-	name       string
-	statusCode int
-}{
-	{
-		name:       "contactAll-ok",
-		statusCode: http.StatusOK,
-	},
-}
-
 func TestContact_All(t *testing.T) {
-	for _, tt := range contactAllTests {
-		r, _ := http.NewRequest("GET", "/contacts", nil)
-		w := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(h.contact.All)
-		handler.ServeHTTP(w, r)
-
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+	var tests = []struct {
+		name       string
+		statusCode int
+	}{
+		{"success", http.StatusOK},
 	}
-}
 
-var contactGetTests = []struct {
-	name       string
-	contact    models.Contact
-	statusCode int
-}{
-	{
-		name: "contactAll-ok",
-		contact: models.Contact{
-			Id: 1,
-		},
-		statusCode: http.StatusOK,
-	},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, _ := http.NewRequest("GET", "/contacts", nil)
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.contact.All)
+			handler.ServeHTTP(w, r)
+
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
+	}
 }
 
 func TestContact_Get(t *testing.T) {
-	for _, tt := range contactGetTests {
-		r, _ := http.NewRequest("GET", fmt.Sprint("/contacts/", tt.contact.Id), nil)
-		ctx := context.WithValue(r.Context(), "contact", tt.contact)
-		r = r.WithContext(ctx)
-		w := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(h.contact.Get)
-		handler.ServeHTTP(w, r)
-
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+	var tests = []struct {
+		name       string
+		contactId  int
+		statusCode int
+	}{
+		{"success", 1, http.StatusOK},
 	}
-}
 
-var contactGetByUserTests = []struct {
-	name       string
-	user       models.User
-	statusCode int
-}{
-	{
-		name: "contactGetByUser-ok",
-		user: models.User{
-			Id: 1,
-		},
-		statusCode: http.StatusOK,
-	},
-	{
-		name: "contactGetByUser-error-getting-user-contacts",
-		user: models.User{
-			Id: -1,
-		},
-		statusCode: http.StatusInternalServerError,
-	},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, _ := http.NewRequest("GET", fmt.Sprint("/contacts/", tt.contactId), nil)
+			ctx := context.WithValue(r.Context(), "contact", models.Contact{Id: tt.contactId})
+			r = r.WithContext(ctx)
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.contact.Get)
+			handler.ServeHTTP(w, r)
+
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
+	}
 }
 
 func TestContact_GetByUser(t *testing.T) {
-	for _, tt := range contactGetByUserTests {
-		r, _ := http.NewRequest("GET", fmt.Sprint("/users/", tt.user.Id, "/contacts"), nil)
-		ctx := context.WithValue(r.Context(), "user", tt.user)
-		r = r.WithContext(ctx)
-		w := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(h.contact.GetByUser)
-		handler.ServeHTTP(w, r)
-
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+	var tests = []struct {
+		name       string
+		user       models.User
+		statusCode int
+	}{
+		{"success", models.User{Id: 1}, http.StatusOK},
+		{"error getting contacts", models.User{Id: -1}, http.StatusInternalServerError},
 	}
-}
 
-var contactCreateTests = []struct {
-	name       string
-	userId     int
-	form       url.Values
-	statusCode int
-}{
-	{
-		name:   "contactCreate-ok",
-		userId: 1,
-		form: url.Values{
-			"nama": {"John Doe"},
-		},
-		statusCode: http.StatusCreated,
-	},
-	{
-		name:       "contactCreate-error-parsing-form",
-		userId:     1,
-		form:       nil,
-		statusCode: http.StatusBadRequest,
-	},
-	{
-		name:   "contactCreate-error-form-validation",
-		userId: 1,
-		form: url.Values{
-			"nama": {""},
-		},
-		statusCode: http.StatusBadRequest,
-	},
-	{
-		name:   "contactCreate-error-creating-contact",
-		userId: -1,
-		form: url.Values{
-			"nama": {"John Doe"},
-		},
-		statusCode: http.StatusInternalServerError,
-	},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, _ := http.NewRequest("GET", fmt.Sprint("/users/", tt.user.Id, "/contacts"), nil)
+			ctx := context.WithValue(r.Context(), "user", tt.user)
+			r = r.WithContext(ctx)
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.contact.GetByUser)
+			handler.ServeHTTP(w, r)
+
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
+	}
 }
 
 func TestContact_Create(t *testing.T) {
-	for _, tt := range contactCreateTests {
-		var r *http.Request
-		if tt.form != nil {
-			r, _ = http.NewRequest("POST", "/contacts/create", strings.NewReader(tt.form.Encode()))
-		} else {
-			r, _ = http.NewRequest("POST", "/contacts/create", nil)
-		}
-
-		ctx := context.WithValue(r.Context(), "user_id", tt.userId)
-		r = r.WithContext(ctx)
-		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		w := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(h.contact.Create)
-		handler.ServeHTTP(w, r)
-
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+	var tests = []struct {
+		name       string
+		userId     int
+		form       url.Values
+		statusCode int
+	}{
+		{"success", 1, url.Values{"nama": {"John Doe"}}, http.StatusCreated},
+		{"error parsing form", 1, nil, http.StatusBadRequest},
+		{"error validation", 1, url.Values{"nama": {""}}, http.StatusBadRequest},
+		{"error creating contact", -1, url.Values{"nama": {"John Doe"}}, http.StatusInternalServerError},
 	}
-}
 
-var contactUpdateTests = []struct {
-	name       string
-	contact    models.Contact
-	form       url.Values
-	statusCode int
-}{
-	{
-		name:    "contactUpdate-ok",
-		contact: models.Contact{Id: 1},
-		form: url.Values{
-			"nama": {"John Doe"},
-		},
-		statusCode: http.StatusOK,
-	},
-	{
-		name:       "contactUpdate-error-parsing-form",
-		contact:    models.Contact{Id: 1},
-		form:       nil,
-		statusCode: http.StatusBadRequest,
-	},
-	{
-		name:    "contactUpdate-error-form-validation",
-		contact: models.Contact{Id: 1},
-		form: url.Values{
-			"nama": {""},
-		},
-		statusCode: http.StatusBadRequest,
-	},
-	{
-		name:    "contactUpdate-error-updating-contact",
-		contact: models.Contact{Id: -1},
-		form: url.Values{
-			"nama": {"John Doe"},
-		},
-		statusCode: http.StatusInternalServerError,
-	},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var r *http.Request
+			if tt.form != nil {
+				r, _ = http.NewRequest("POST", "/contacts", strings.NewReader(tt.form.Encode()))
+			} else {
+				r, _ = http.NewRequest("POST", "/contacts", nil)
+			}
+
+			ctx := context.WithValue(r.Context(), "user_id", tt.userId)
+			r = r.WithContext(ctx)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.contact.Create)
+			handler.ServeHTTP(w, r)
+
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
+	}
 }
 
 func TestContact_Update(t *testing.T) {
-	for _, tt := range contactUpdateTests {
-		var r *http.Request
-		if tt.form != nil {
-			r, _ = http.NewRequest("POST", fmt.Sprint("/contacts/", tt.contact.Id, "/update"), strings.NewReader(tt.form.Encode()))
-		} else {
-			r, _ = http.NewRequest("POST", fmt.Sprint("/contacts/", tt.contact.Id, "/update"), nil)
-		}
+	var tests = []struct {
+		name       string
+		contactId  int
+		form       url.Values
+		statusCode int
+	}{
+		{"success", 1, url.Values{"nama": {"John Doe"}}, http.StatusOK},
+		{"error parsing form", 1, nil, http.StatusBadRequest},
+		{"error validation", 1, url.Values{"nama": {""}}, http.StatusBadRequest},
+		{"error updating contact", -1, url.Values{"nama": {"John Doe"}}, http.StatusInternalServerError},
+	}
 
-		ctx := context.WithValue(r.Context(), "contact", tt.contact)
-		r = r.WithContext(ctx)
-		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		w := httptest.NewRecorder()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var r *http.Request
+			if tt.form != nil {
+				r, _ = http.NewRequest("PUT", fmt.Sprint("/contacts/", tt.contactId), strings.NewReader(tt.form.Encode()))
+			} else {
+				r, _ = http.NewRequest("PUT", fmt.Sprint("/contacts/", tt.contactId), nil)
+			}
 
-		handler := http.HandlerFunc(h.contact.Update)
-		handler.ServeHTTP(w, r)
+			ctx := context.WithValue(r.Context(), "contact", models.Contact{Id: tt.contactId})
+			r = r.WithContext(ctx)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.contact.Update)
+			handler.ServeHTTP(w, r)
 
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
 	}
 }
 
-var contactDeleteTests = []struct {
-	name       string
-	contact    models.Contact
-	statusCode int
-}{
-	{
-		name:       "contactDelete-ok",
-		contact:    models.Contact{Id: 1},
-		statusCode: http.StatusOK,
-	},
-	{
-		name:       "contactDelete-error-deleting-contact",
-		contact:    models.Contact{Id: -1},
-		statusCode: http.StatusInternalServerError,
-	},
-}
-
 func TestContact_Delete(t *testing.T) {
-	for _, tt := range contactDeleteTests {
-		r, _ := http.NewRequest("POST", fmt.Sprint("/contacts/", tt.contact.Id, "/delete"), nil)
-		ctx := context.WithValue(r.Context(), "contact", tt.contact)
-		r = r.WithContext(ctx)
-		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		w := httptest.NewRecorder()
+	var tests = []struct {
+		name       string
+		contactId  int
+		statusCode int
+	}{
+		{"success", 1, http.StatusOK},
+		{"error deleting contact", -1, http.StatusInternalServerError},
+	}
 
-		handler := http.HandlerFunc(h.contact.Delete)
-		handler.ServeHTTP(w, r)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, _ := http.NewRequest("DELETE", fmt.Sprint("/contacts/", tt.contactId), nil)
+			ctx := context.WithValue(r.Context(), "contact", models.Contact{Id: tt.contactId})
+			r = r.WithContext(ctx)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.contact.Delete)
+			handler.ServeHTTP(w, r)
 
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
 	}
 }

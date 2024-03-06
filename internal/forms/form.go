@@ -69,7 +69,7 @@ func (f *Form) Valid() bool {
 
 func (f *Form) ValidOrErr(w http.ResponseWriter, r *http.Request) bool {
 	if !f.Valid() {
-		u.SendJSON(w, http.StatusBadRequest, u.Response{
+		u.JSON(w, http.StatusBadRequest, u.Response{
 			Message: "Some fields are invalid",
 			Errors:  f.Errors,
 		})

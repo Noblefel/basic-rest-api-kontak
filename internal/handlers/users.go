@@ -24,20 +24,18 @@ func NewUserHandlers(db *sql.DB) *UserHandlers {
 
 func NewTestUserHandlers() *UserHandlers {
 	return &UserHandlers{
-		repo: dbrepo.NewTestUserRepo(),
+		repo: dbrepo.NewMockUserRepo(),
 	}
 }
 
 func (h *UserHandlers) All(w http.ResponseWriter, r *http.Request) {
 	users, err := h.repo.GetAllUser()
 	if err != nil && !errors.Is(sql.ErrNoRows, err) {
-		u.SendJSON(w, http.StatusInternalServerError, u.Response{
-			Message: "Error when retrieving all users",
-		})
+		u.Message(w, http.StatusInternalServerError, "Error when retrieving all users")
 		return
 	}
 
-	u.SendJSON(w, http.StatusOK, u.Response{
+	u.JSON(w, http.StatusOK, u.Response{
 		Message: "Users retrieved succesfully",
 		Data:    users,
 	})
@@ -48,7 +46,7 @@ func (h *UserHandlers) Get(w http.ResponseWriter, r *http.Request) {
 
 	user.Password = ""
 
-	u.SendJSON(w, http.StatusOK, u.Response{
+	u.JSON(w, http.StatusOK, u.Response{
 		Message: "User retrieved succesfully",
 		Data:    user,
 	})
@@ -58,9 +56,7 @@ func (h *UserHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(models.User)
 
 	if err := r.ParseForm(); err != nil {
-		u.SendJSON(w, http.StatusBadRequest, u.Response{
-			Message: "Error parsing form",
-		})
+		u.Message(w, http.StatusBadRequest, "Error parsing form")
 		return
 	}
 
@@ -80,28 +76,20 @@ func (h *UserHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.repo.UpdateUser(newData); err != nil {
-		u.SendJSON(w, http.StatusInternalServerError, u.Response{
-			Message: "Error unable to update user",
-		})
+		u.Message(w, http.StatusInternalServerError, "Error unable to update user")
 		return
 	}
 
-	u.SendJSON(w, http.StatusOK, u.Response{
-		Message: "User updated",
-	})
+	u.Message(w, http.StatusOK, "User updated")
 }
 
 func (h *UserHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(models.User)
 
 	if err := h.repo.DeleteUser(user.Id); err != nil {
-		u.SendJSON(w, http.StatusInternalServerError, u.Response{
-			Message: "Error unable to delete user",
-		})
+		u.Message(w, http.StatusInternalServerError, "Error unable to delete user")
 		return
 	}
 
-	u.SendJSON(w, http.StatusOK, u.Response{
-		Message: "User deleted",
-	})
+	u.Message(w, http.StatusOK, "User deleted")
 }

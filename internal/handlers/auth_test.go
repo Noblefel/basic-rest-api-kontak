@@ -21,138 +21,71 @@ func TestNewAuthHandlers(t *testing.T) {
 	}
 }
 
-var authRegisterTests = []struct {
-	name       string
-	form       url.Values
-	statusCode int
-}{
-	{
-		name: "authRegister-ok",
-		form: url.Values{
-			"email":    {"test@example.com"},
-			"password": {"password"},
-		},
-		statusCode: http.StatusCreated,
-	},
-	{
-		name:       "authRegister-error-parsing-form",
-		form:       nil,
-		statusCode: http.StatusBadRequest,
-	},
-	{
-		name: "authRegister-error-form-validation",
-		form: url.Values{
-			"email": {"x"},
-		},
-		statusCode: http.StatusBadRequest,
-	},
-	{
-		name: "authRegister-error-duplicate-email",
-		form: url.Values{
-			"email":    {"alreadyexists@error.com"},
-			"password": {"password"},
-		},
-		statusCode: http.StatusConflict,
-	},
-	{
-		name: "authRegister-error-registering-user",
-		form: url.Values{
-			"email":    {"unexpected@error.com"},
-			"password": {"password"},
-		},
-		statusCode: http.StatusInternalServerError,
-	},
-}
-
 func TestAuth_Register(t *testing.T) {
-	for _, tt := range authRegisterTests {
-		var r *http.Request
-		if tt.form != nil {
-			r, _ = http.NewRequest("POST", "/auth/register", strings.NewReader(tt.form.Encode()))
-		} else {
-			r, _ = http.NewRequest("POST", "/auth/register", nil)
-		}
+	var tests = []struct {
+		name       string
+		form       url.Values
+		statusCode int
+	}{
+		{"success", url.Values{"email": {"test@example.com"}, "password": {"password"}}, http.StatusCreated},
+		{"error parsing form", nil, http.StatusBadRequest},
+		{"error validation", url.Values{"email": {"x"}}, http.StatusBadRequest},
+		{"duplicate email", url.Values{"email": {"alreadyexists@error.com"}, "password": {"password"}}, http.StatusConflict},
+		{"error registering ", url.Values{"email": {"unexpected@error.com"}, "password": {"password"}}, http.StatusInternalServerError},
+	}
 
-		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		w := httptest.NewRecorder()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var r *http.Request
+			if tt.form != nil {
+				r, _ = http.NewRequest("POST", "/auth/register", strings.NewReader(tt.form.Encode()))
+			} else {
+				r, _ = http.NewRequest("POST", "/auth/register", nil)
+			}
 
-		handler := http.HandlerFunc(h.auth.Register)
-		handler.ServeHTTP(w, r)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.auth.Register)
+			handler.ServeHTTP(w, r)
 
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
 	}
 }
 
-var authLoginTests = []struct {
-	name       string
-	form       url.Values
-	statusCode int
-}{
-	{
-		name: "authLogin-ok",
-		form: url.Values{
-			"email":    {"test@example.com"},
-			"password": {"password"},
-		},
-		statusCode: http.StatusOK,
-	},
-	{
-		name:       "authLogin-error-parsing-form",
-		form:       nil,
-		statusCode: http.StatusBadRequest,
-	},
-	{
-		name: "authLogin-error-form-validation",
-		form: url.Values{
-			"email": {"x"},
-		},
-		statusCode: http.StatusBadRequest,
-	},
-	{
-		name: "authLogin-error-invalid-credentials",
-		form: url.Values{
-			"email":    {"test@example.com"},
-			"password": {"wrongpassword"},
-		},
-		statusCode: http.StatusUnauthorized,
-	},
-	{
-		name: "authLogin-error-authenticating",
-		form: url.Values{
-			"email":    {"test@example.com"},
-			"password": {"unexpected error"},
-		},
-		statusCode: http.StatusInternalServerError,
-	},
-	{
-		name: "authLogin-error-generating-jwt",
-		form: url.Values{
-			"email":    {"test@example.com"},
-			"password": {"jwt error"},
-		},
-		statusCode: http.StatusInternalServerError,
-	},
-}
-
 func TestAuth_Login(t *testing.T) {
-	for _, tt := range authLoginTests {
-		var r *http.Request
-		if tt.form != nil {
-			r, _ = http.NewRequest("POST", "/auth/login", strings.NewReader(tt.form.Encode()))
-		} else {
-			r, _ = http.NewRequest("POST", "/auth/login", nil)
-		}
+	var tests = []struct {
+		name       string
+		form       url.Values
+		statusCode int
+	}{
+		{"success", url.Values{"email": {"test@example.com"}, "password": {"password"}}, http.StatusOK},
+		{"error parsing form", nil, http.StatusBadRequest},
+		{"error validation", url.Values{"email": {"x"}}, http.StatusBadRequest},
+		{"invalid credentials", url.Values{"email": {"test@example.com"}, "password": {"wrongpassword"}}, http.StatusUnauthorized},
+		{"error authenticating", url.Values{"email": {"test@example.com"}, "password": {"unexpected error"}}, http.StatusInternalServerError},
+		{"error generating jwt", url.Values{"email": {"test@example.com"}, "password": {"jwt error"}}, http.StatusInternalServerError},
+	}
 
-		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		w := httptest.NewRecorder()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var r *http.Request
+			if tt.form != nil {
+				r, _ = http.NewRequest("POST", "/auth/login", strings.NewReader(tt.form.Encode()))
+			} else {
+				r, _ = http.NewRequest("POST", "/auth/login", nil)
+			}
 
-		handler := http.HandlerFunc(h.auth.Login)
-		handler.ServeHTTP(w, r)
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			w := httptest.NewRecorder()
+			handler := http.HandlerFunc(h.auth.Login)
+			handler.ServeHTTP(w, r)
 
-		if w.Code != tt.statusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.statusCode)
-		}
+			if w.Code != tt.statusCode {
+				t.Errorf("want %d, got %d", tt.statusCode, w.Code)
+			}
+		})
 	}
 }

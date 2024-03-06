@@ -5,9 +5,16 @@ import (
 	"errors"
 
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/models"
+	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository"
 )
 
-func (ur *testUserRepo) GetUser(id int) (models.User, error) {
+type mockUserRepo struct{}
+
+func NewMockUserRepo() repository.UserRepo {
+	return &mockUserRepo{}
+}
+
+func (ur *mockUserRepo) GetUser(id int) (models.User, error) {
 	var user models.User
 
 	if id > 9999 {
@@ -21,13 +28,13 @@ func (ur *testUserRepo) GetUser(id int) (models.User, error) {
 	return user, nil
 }
 
-func (ur *testUserRepo) GetAllUser() ([]models.User, error) {
+func (ur *mockUserRepo) GetAllUser() ([]models.User, error) {
 	var users []models.User
 
 	return users, nil
 }
 
-func (ur *testUserRepo) UpdateUser(u models.User) error {
+func (ur *mockUserRepo) UpdateUser(u models.User) error {
 	if u.Id <= 0 {
 		return errors.New("unexpected error")
 	}
@@ -35,7 +42,7 @@ func (ur *testUserRepo) UpdateUser(u models.User) error {
 	return nil
 }
 
-func (ur *testUserRepo) DeleteUser(id int) error {
+func (ur *mockUserRepo) DeleteUser(id int) error {
 	if id <= 0 {
 		return errors.New("unexpeceted error")
 	}

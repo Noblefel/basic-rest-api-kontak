@@ -1,5 +1,3 @@
-A sample api for managing contacts
-
 ### Dependencies
 - [Chi Router](https://github.com/go-chi/chi)
 - [pgx - PostgreSQL Driver and Toolkit](https://github.com/jackc/pgx) 
@@ -36,4 +34,4 @@ go run main.go
 (Make sure to run the migrations)
 
 ### Note!
-Set your request header to <strong>"application/x-www-form-urlencoded"</strong>
+Set the request header to <strong>"application/x-www-form-urlencoded"</strong>

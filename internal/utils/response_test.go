@@ -6,46 +6,27 @@ import (
 	"testing"
 )
 
-var responseTests = []struct {
-	name               string
-	payload            Response
-	inputStatusCode    int
-	expectedStatusCode int
-}{
-	{
-		name: "response-ok",
-		payload: Response{
-			Message: "Success",
-		},
-		inputStatusCode:    http.StatusOK,
-		expectedStatusCode: http.StatusOK,
-	},
-	{
-		name: "response-ok-2",
-		payload: Response{
-			Message: "Some fields are invalid",
-		},
-		inputStatusCode:    http.StatusBadRequest,
-		expectedStatusCode: http.StatusBadRequest,
-	},
-	{
-		name: "response-error-marshalling-json",
-		payload: Response{
-			Data: make(chan int),
-		},
-		inputStatusCode:    http.StatusOK,
-		expectedStatusCode: http.StatusInternalServerError,
-	},
-}
-
 func TestResponse(t *testing.T) {
-	for _, tt := range responseTests {
-		w := httptest.NewRecorder()
+	var tests = []struct {
+		name               string
+		data               interface{}
+		inputStatusCode    int
+		expectedStatusCode int
+	}{
+		{"success", nil, http.StatusOK, http.StatusOK},
+		{"success 2", nil, http.StatusBadRequest, http.StatusBadRequest},
+		{"error marshalling json", make(chan int), http.StatusOK, http.StatusInternalServerError},
+	}
 
-		SendJSON(w, tt.inputStatusCode, tt.payload)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
 
-		if w.Code != tt.expectedStatusCode {
-			t.Errorf("%s returned response code of %d, wanted %d", tt.name, w.Code, tt.expectedStatusCode)
-		}
+			JSON(w, tt.inputStatusCode, Response{Data: tt.data})
+
+			if w.Code != tt.expectedStatusCode {
+				t.Errorf("want %d, got %d", tt.expectedStatusCode, w.Code)
+			}
+		})
 	}
 }

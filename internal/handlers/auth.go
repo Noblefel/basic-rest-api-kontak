@@ -26,16 +26,13 @@ func NewAuthHandlers(db *sql.DB) *AuthHandlers {
 
 func NewTestAuthHandlers() *AuthHandlers {
 	return &AuthHandlers{
-		repo: dbrepo.NewTestAuthRepo(),
+		repo: dbrepo.NewMockAuthRepo(),
 	}
 }
 
 func (h *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		u.SendJSON(w, http.StatusBadRequest, u.Response{
-			Message: "Error parsing form",
-		})
+	if err := r.ParseForm(); err != nil {
+		u.Message(w, http.StatusBadRequest, "Error parsing form")
 		return
 	}
 
@@ -53,32 +50,23 @@ func (h *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
 		Password: form.Get("password"),
 	}
 
-	_, err = h.repo.Register(user)
+	_, err := h.repo.Register(user)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value") {
-			u.SendJSON(w, http.StatusConflict, u.Response{
-				Message: "Email already in use",
-			})
+			u.Message(w, http.StatusConflict, "Email already in use")
 			return
 		}
 
-		u.SendJSON(w, http.StatusInternalServerError, u.Response{
-			Message: "Error unable to register user",
-		})
+		u.Message(w, http.StatusInternalServerError, "Error unable to register user")
 		return
 	}
 
-	u.SendJSON(w, http.StatusCreated, u.Response{
-		Message: "User has been created",
-	})
+	u.Message(w, http.StatusCreated, "User has been created")
 }
 
 func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		u.SendJSON(w, http.StatusBadRequest, u.Response{
-			Message: "Error parsing form",
-		})
+	if err := r.ParseForm(); err != nil {
+		u.Message(w, http.StatusBadRequest, "Error parsing form")
 		return
 	}
 
@@ -99,27 +87,21 @@ func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	id, level, err := h.repo.Authenticate(user)
 	if err != nil {
 		if errors.Is(bcrypt.ErrMismatchedHashAndPassword, err) || errors.Is(sql.ErrNoRows, err) {
-			u.SendJSON(w, http.StatusUnauthorized, u.Response{
-				Message: "Invalid credentials",
-			})
+			u.Message(w, http.StatusUnauthorized, "Invalid credentials")
 			return
 		}
 
-		u.SendJSON(w, http.StatusInternalServerError, u.Response{
-			Message: "Error when authenticating",
-		})
+		u.Message(w, http.StatusInternalServerError, "Error when authenticating")
 		return
 	}
 
 	token, err := u.GenerateJWT(id, level)
 	if err != nil {
-		u.SendJSON(w, http.StatusInternalServerError, u.Response{
-			Message: "Error when authenticating",
-		})
+		u.Message(w, http.StatusInternalServerError, "Error when authenticating")
 		return
 	}
 
-	u.SendJSON(w, http.StatusOK, u.Response{
+	u.JSON(w, http.StatusOK, u.Response{
 		Message: "Authenticated",
 		Data:    token,
 	})

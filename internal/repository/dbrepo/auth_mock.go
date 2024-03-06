@@ -4,10 +4,17 @@ import (
 	"errors"
 
 	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/models"
+	"github.com/Noblefel/Rest-Api-Managemen-Kontak/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (ar *testAuthRepo) Register(u models.User) (int, error) {
+type mockAuthRepo struct{}
+
+func NewMockAuthRepo() repository.AuthRepo {
+	return &mockAuthRepo{}
+}
+
+func (ar *mockAuthRepo) Register(u models.User) (int, error) {
 	if u.Email == "alreadyexists@error.com" {
 		return 0, errors.New("duplicate key value")
 	}
@@ -19,7 +26,7 @@ func (ar *testAuthRepo) Register(u models.User) (int, error) {
 	return 1, nil
 }
 
-func (ar *testAuthRepo) Authenticate(u models.User) (int, int, error) {
+func (ar *mockAuthRepo) Authenticate(u models.User) (int, int, error) {
 	if u.Password == "unexpected error" {
 		return 0, 0, errors.New("unexpected error")
 	}
