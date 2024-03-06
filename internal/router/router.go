@@ -28,35 +28,38 @@ func (r *router) Routes() http.Handler {
 	mux := chi.NewRouter()
 	middleware := NewMiddleware(r.db)
 
-	mux.Route("/auth", func(mux chi.Router) {
-		mux.Post("/register", r.auth.Register)
-		mux.Post("/login", r.auth.Login)
-	})
-
-	mux.Group(func(mux chi.Router) {
-		mux.Use(middleware.Auth)
+	mux.Route("/api", func(mux chi.Router) {
+		mux.Route("/auth", func(mux chi.Router) {
+			mux.Post("/register", r.auth.Register)
+			mux.Post("/login", r.auth.Login)
+		})
 
 		mux.Group(func(mux chi.Router) {
-			mux.Use(middleware.AdminOnly)
-			mux.Get("/users", r.user.All)
-			mux.Get("/contacts", r.contact.All)
+			mux.Use(middleware.Auth)
+
+			mux.Group(func(mux chi.Router) {
+				mux.Use(middleware.AdminOnly)
+				mux.Get("/users", r.user.All)
+				mux.Get("/contacts", r.contact.All)
+			})
+
+			mux.Route("/users/{user_id}", func(mux chi.Router) {
+				mux.Use(middleware.UserGuard)
+				mux.Get("/", r.user.Get)
+				mux.Put("/", r.user.Update)
+				mux.Delete("/", r.user.Delete)
+				mux.Get("/contacts", r.contact.GetByUser)
+			})
+
+			mux.Post("/contacts", r.contact.Create)
+			mux.Route("/contacts/{contact_id}", func(mux chi.Router) {
+				mux.Use(middleware.ContactGuard)
+				mux.Get("/", r.contact.Get)
+				mux.Put("/", r.contact.Update)
+				mux.Delete("/delete", r.contact.Delete)
+			})
 		})
 
-		mux.Route("/users/{user_id}", func(mux chi.Router) {
-			mux.Use(middleware.UserGuard)
-			mux.Get("/", r.user.Get)
-			mux.Post("/update", r.user.Update)
-			mux.Post("/delete", r.user.Delete)
-			mux.Get("/contacts", r.contact.GetByUser)
-		})
-
-		mux.Post("/contacts/create", r.contact.Create)
-		mux.Route("/contacts/{contact_id}", func(mux chi.Router) {
-			mux.Use(middleware.ContactGuard)
-			mux.Get("/", r.contact.Get)
-			mux.Post("/update", r.contact.Update)
-			mux.Post("/delete", r.contact.Delete)
-		})
 	})
 
 	mux.NotFound(handlers.NotFound)

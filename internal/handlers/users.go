@@ -46,6 +46,8 @@ func (h *UserHandlers) All(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(models.User)
 
+	user.Password = ""
+
 	u.SendJSON(w, http.StatusOK, u.Response{
 		Message: "User retrieved succesfully",
 		Data:    user,
@@ -55,8 +57,7 @@ func (h *UserHandlers) Get(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(models.User)
 
-	err := r.ParseForm()
-	if err != nil {
+	if err := r.ParseForm(); err != nil {
 		u.SendJSON(w, http.StatusBadRequest, u.Response{
 			Message: "Error parsing form",
 		})
@@ -78,8 +79,7 @@ func (h *UserHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		Password: form.Get("password"),
 	}
 
-	err = h.repo.UpdateUser(newData)
-	if err != nil {
+	if err := h.repo.UpdateUser(newData); err != nil {
 		u.SendJSON(w, http.StatusInternalServerError, u.Response{
 			Message: "Error unable to update user",
 		})
@@ -94,8 +94,7 @@ func (h *UserHandlers) Update(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(models.User)
 
-	err := h.repo.DeleteUser(user.Id)
-	if err != nil {
+	if err := h.repo.DeleteUser(user.Id); err != nil {
 		u.SendJSON(w, http.StatusInternalServerError, u.Response{
 			Message: "Error unable to delete user",
 		})
