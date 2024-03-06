@@ -1,7 +1,6 @@
 ### Dependencies
 - [Chi Router](https://github.com/go-chi/chi)
 - [pgx - PostgreSQL Driver and Toolkit](https://github.com/jackc/pgx) 
-- [GoDotEnv](https://github.com/joho/godotenv) 
 - [jwt-go](https://github.com/golang-jwt/jwt) 
 
 # Installation
@@ -16,22 +15,28 @@ Navigate inside the directory and download all the dependencies
 go mod download
 ``` 
 
-### ENV
-Configure the environment variables
-```sh
-DB_HOST=localhost
-DB_NAME=managemen_kontak
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=
-```
+### Command Flags 
+| Key | Default |
+| -------- | ------- |
+| host | localhost | 
+| port | 5432 | 
+| name | managemen_kontak | 
+| u | postgres | 
+| pw |  | 
+
 
 ### Start the server
-Simply run:
+Using default configurations, simply run:
 ```sh
-go run main.go
+go run cmd/main.go
 ``` 
+
+With flags: 
+```sh
+go run cmd/main.go -host=localhost -port=5432 -name=managemen_kontak -u=postgres -pw={Your password}
+```
+
 (Make sure to run the migrations)
 
-### Note!
+### Note
 Set the request header to <strong>"application/x-www-form-urlencoded"</strong>
