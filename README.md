@@ -1,42 +1,25 @@
-### Dependencies
-- [Chi Router](https://github.com/go-chi/chi)
-- [pgx - PostgreSQL Driver and Toolkit](https://github.com/jackc/pgx) 
-- [jwt-go](https://github.com/golang-jwt/jwt) 
+Basic Rest API hanya menggunakan net/http Go versi 1.22
 
-# Installation
-```bash
-git clone https://github.com/Noblefel/Rest-Api-Managemen-Kontak
-```  
+## Notes
 
-# Usage
-### Setup
-Navigate inside the directory and download all the dependencies
-```bash
-go mod download
-``` 
+1. Dependensi third party minimal
+2. Validasi sengaja di hard-code
+3. In-memory data storage
+4. Authentication
+5. Unit testing
 
-### Command Flags 
-| Key | Default |
-| -------- | ------- |
-| host | localhost | 
-| port | 5432 | 
-| name | managemen_kontak | 
-| u | postgres | 
-| pw |  | 
+**Dependensi:** [jwt](https://github.com/golang-jwt/jwt)
 
+## Usage
 
-### Start the server
-Using default configurations, simply run:
-```sh
-go run cmd/main.go
-``` 
-
-With flags: 
-```sh
-go run cmd/main.go -host=localhost -port=5432 -name=managemen_kontak -u=postgres -pw={Your password}
+```
+git clone https://github.com/Noblefel/baic-rest-api-kontak
 ```
 
-(Make sure to run the migrations)
+```
+go mod download
+```
 
-### Note
-Set the request header to <strong>"application/x-www-form-urlencoded"</strong>
+```
+go run .
+```
